@@ -1,0 +1,62 @@
+{
+  "variables": {
+    "iso_url": "http://releases.ubuntu.com/14.04.5/ubuntu-14.04.5-server-amd64.iso",
+    "iso_checksum_type": "md5",
+    "iso_checksum": "dd54dc8cfc2a655053d19813c2f9aa9f",
+    "country": "IT",
+    "language": "en_US:en",
+    "locale": "en_US.UTF-8",
+    "time_zone": "Europe/Rome"
+  },
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "iso_url": "{{ user `iso_url` }}",
+      "iso_checksum_type": "{{ user `iso_checksum_type` }}",
+      "iso_checksum": "{{ user `iso_checksum` }}",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_timeout": "10m",
+      "disk_size": 64000,
+      "http_directory": "http",
+      "boot_command": [
+        "<esc><esc><enter><wait>",
+        "/install/vmlinuz ",
+        "auto=true ",
+        "fb=false ",
+        "country={{ user `country` }} ",
+        "language={{ user `language` }} ",
+        "locale={{ user `locale` }} ",
+        "hostname={{ .Name }} ",
+        "noapic ",
+        "url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+        "time/zone={{ user `time_zone` }} ",
+        "initrd=/install/initrd.gz -- <enter>"
+      ],
+      "guest_os_type": "Ubuntu_64",
+      "vboxmanage": [
+        ["modifyvm", "{{ .Name }}", "--audio", "none"],
+        ["modifyvm", "{{ .Name }}", "--cpus", "1"],
+        ["modifyvm", "{{ .Name }}", "--keyboard", "ps2"],
+        ["modifyvm", "{{ .Name }}", "--memory", "512"],
+        ["modifyvm", "{{ .Name }}", "--mouse", "ps2"],
+        ["modifyvm", "{{ .Name }}", "--usb", "off"]
+      ],
+      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "only": [
+        "virtualbox-iso"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "scripts/vagrant.sh"
+    }
+  ]
+}
